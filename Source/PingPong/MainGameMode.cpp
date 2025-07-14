@@ -11,13 +11,13 @@
 #include "BallActor.h"
 #include "MainGameState.h"
 
-bool bBallSpawned = false;
+bool bBallActivated = false;
 
 void AMainGameMode::Tick(float DeltaSeconds)
 {
     Super::Tick(DeltaSeconds);
 
-    if (!HasAuthority() || bBallSpawned) return;
+    if (!HasAuthority() || bBallActivated) return;
 
     ABallActor* BallActor = Cast<ABallActor>(UGameplayStatics::GetActorOfClass(GetWorld(), ABallActor::StaticClass()));
     if (BallActor)
@@ -38,7 +38,7 @@ void AMainGameMode::Tick(float DeltaSeconds)
                 GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Yellow, TEXT("Waiting on other player"));
             }
         }
-        else if (!bBallSpawned)
+        else if (!bBallActivated)
         {
             UWorld* World = GetWorld();
             if (World)
@@ -47,7 +47,15 @@ void AMainGameMode::Tick(float DeltaSeconds)
                 FRotator SpawnRotation = FRotator::ZeroRotator;
 
                 BallActor->ResetBall();
-                bBallSpawned = true;
+
+                if (AMainGameState* MainGameState = Cast<AMainGameState>(GameState))
+                {
+                    MainGameState->LeftScore = 0;
+                    MainGameState->RightScore = 0;
+                    MainGameState->OnRep_ScoreChanged();
+                }
+
+                bBallActivated = true;
             }
         }
     }
