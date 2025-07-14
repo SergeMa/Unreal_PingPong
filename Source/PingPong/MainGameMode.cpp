@@ -9,6 +9,7 @@
 #include "GameFramework/GameStateBase.h"
 #include "GameFramework/GameState.h"
 #include "BallActor.h"
+#include "MainGameState.h"
 
 bool bBallSpawned = false;
 
@@ -16,36 +17,42 @@ void AMainGameMode::Tick(float DeltaSeconds)
 {
     Super::Tick(DeltaSeconds);
 
-    if (!HasAuthority()) return;
+    if (!HasAuthority() || bBallSpawned) return;
 
-    AGameStateBase* CurrentGameState = GameState;
-    if (!CurrentGameState)
+    ABallActor* BallActor = Cast<ABallActor>(UGameplayStatics::GetActorOfClass(GetWorld(), ABallActor::StaticClass()));
+    if (BallActor)
     {
-        UE_LOG(LogTemp, Warning, TEXT("GameState not valid!"));
-        return;
-    }
-
-    int32 NumPlayers = CurrentGameState->PlayerArray.Num();
-
-    if (NumPlayers < 2)
-    {
-        if (GEngine)
+        AGameStateBase* CurrentGameState = GameState;
+        if (!CurrentGameState)
         {
-            GEngine->AddOnScreenDebugMessage(-1,1.0f,FColor::Yellow,TEXT("Waiting on other player"));
+            UE_LOG(LogTemp, Warning, TEXT("GameState not valid!"));
+            return;
+        }
+
+        int32 NumPlayers = CurrentGameState->PlayerArray.Num();
+
+        if (NumPlayers < 2)
+        {
+            if (GEngine)
+            {
+                GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Yellow, TEXT("Waiting on other player"));
+            }
+        }
+        else if (!bBallSpawned)
+        {
+            UWorld* World = GetWorld();
+            if (World)
+            {
+                FVector SpawnLocation(0.f, 0.f, 350.f);
+                FRotator SpawnRotation = FRotator::ZeroRotator;
+
+                BallActor->ResetBall();
+                bBallSpawned = true;
+            }
         }
     }
-    else if (!bBallSpawned)
-    {
-        UWorld* World = GetWorld();
-        if (World)
-        {
-            FVector SpawnLocation(0.f, 0.f, 350.f);
-            FRotator SpawnRotation = FRotator::ZeroRotator;
 
-            World->SpawnActor<ABallActor>(BallClass, SpawnLocation, SpawnRotation);
-            bBallSpawned = true;
-        }
-    }
+    
 }
 
 void AMainGameMode::PostLogin(APlayerController* NewPlayer)
@@ -95,5 +102,22 @@ void AMainGameMode::PostLogin(APlayerController* NewPlayer)
     if (NewPawn)
     {
         NewPlayer->Possess(NewPawn);
+    }
+}
+
+void AMainGameMode::ScoreGoal(int PlayerIndex)
+{
+    if (AMainGameState* GS = GetGameState<AMainGameState>())
+    {
+        if (PlayerIndex == 0)
+        {
+            GS->LeftScore++;
+        }
+        else if (PlayerIndex == 1)
+        {
+            GS->RightScore++;
+        }
+
+        GS->OnRep_ScoreChanged();
     }
 }

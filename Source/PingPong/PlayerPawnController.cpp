@@ -1,6 +1,19 @@
 #include "PlayerPawnController.h"
 #include "GameFramework/GameStateBase.h"
+#include "ScoreWidget.h"
 
+
+void APlayerPawnController::BeginPlay()
+{
+	if (IsLocalController() && ScoreboardWidgetClass)
+	{
+		ScoreboardWidget = CreateWidget<UScoreWidget>(this, ScoreboardWidgetClass);
+		if (ScoreboardWidget)
+		{
+			ScoreboardWidget->AddToViewport();
+		}
+	}
+}
 
 void APlayerPawnController::Tick(float DeltaSeconds)
 {

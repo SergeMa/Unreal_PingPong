@@ -2,6 +2,8 @@
 #include "Components/StaticMeshComponent.h"
 #include "Kismet/KismetMathLibrary.h"
 #include "Net/UnrealNetwork.h"
+#include "GoalActor.h"
+#include "MainGameMode.h"
 
 // Конструктор
 ABallActor::ABallActor()
@@ -25,9 +27,11 @@ void ABallActor::BeginPlay()
 
 	if (HasAuthority())
 	{
+		StartingPos = GetActorLocation();
 		MoveDirection = UKismetMathLibrary::RandomUnitVector();
 		MoveDirection.Z = 0.0f;
 		MoveDirection.Normalize();
+		BallMesh->OnComponentBeginOverlap.AddDynamic(this, &ABallActor::OnGoalOverlap);
 	}
 }
 
@@ -51,6 +55,29 @@ void ABallActor::Tick(float DeltaTime)
 FVector ABallActor::ReflectVector(const FVector& Incoming, const FVector& Normal) const
 {
 	return Incoming - 2 * FVector::DotProduct(Incoming, Normal) * Normal;
+}
+
+void ABallActor::OnGoalOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+{
+	if (!HasAuthority()) return;
+
+	if (AGoalActor* OverlappingGoalActor = Cast<AGoalActor>(OtherActor))
+	{
+		if (AMainGameMode* GM = Cast<AMainGameMode>(GetWorld()->GetAuthGameMode()))
+		{
+			GM->ScoreGoal(OverlappingGoalActor->PlayerIndex);
+		}
+		ResetBall();
+	}
+}
+
+void ABallActor::ResetBall()
+{
+	SetActorLocation(StartingPos);
+
+	MoveDirection = UKismetMathLibrary::RandomUnitVector();
+	MoveDirection.Z = 0.0f;
+	MoveDirection.Normalize();
 }
 
 void ABallActor::Multicast_UpdateBallPosition_Implementation(const FVector& NewLocation)

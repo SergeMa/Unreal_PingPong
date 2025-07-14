@@ -15,5 +15,15 @@ class PINGPONG_API APlayerPawnController : public APlayerController
 	GENERATED_BODY()
 
 protected:
+	virtual void BeginPlay() override;
+
 	virtual void Tick(float DeltaSeconds) override;
+
+
+	UPROPERTY(EditDefaultsOnly, Category = "UI")
+	TSubclassOf<class UScoreWidget> ScoreboardWidgetClass;
+
+private:
+	UPROPERTY()
+	UScoreWidget* ScoreboardWidget;
 };

@@ -24,8 +24,8 @@ private:
 	UPROPERTY(VisibleAnywhere, Category = "Components")
 	class UStaticMeshComponent* BallMesh;
 
-	UPROPERTY(EditAnywhere, Category = "Movement")
-	float MoveSpeed = 800.f;
+	UPROPERTY()
+	FVector StartingPos;
 
 	UPROPERTY(Replicated)
 	FVector MoveDirection;
@@ -35,4 +35,16 @@ private:
 
 	UFUNCTION(NetMulticast, Reliable)
 	void Multicast_UpdateBallPosition(const FVector& NewLocation);
+
+	UFUNCTION()
+	void OnGoalOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor,
+		UPrimitiveComponent* OtherComp, int32 OtherBodyIndex,
+		bool bFromSweep, const FHitResult& SweepResult);
+
+	UPROPERTY(EditAnywhere, Category = "Movement")
+	float MoveSpeed = 800.f;
+
+public: 
+	UFUNCTION()
+	void ResetBall();
 };

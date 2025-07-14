@@ -20,6 +20,6 @@ private:
 public:
 	void PostLogin(APlayerController* NewPlayer) override;
 
-	UPROPERTY(EditDefaultsOnly)
-	TSubclassOf<class ABallActor> BallClass;
+	UFUNCTION()
+	void ScoreGoal(int PlayerIndex);
 };
