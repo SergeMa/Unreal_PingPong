@@ -66,7 +66,7 @@ void AMainGameMode::Tick(float DeltaSeconds)
 void AMainGameMode::PostLogin(APlayerController* NewPlayer)
 {
     Super::PostLogin(NewPlayer);
-
+    /*
     if (!HasAuthority() || !NewPlayer)
     {
         return;
@@ -111,6 +111,7 @@ void AMainGameMode::PostLogin(APlayerController* NewPlayer)
     {
         NewPlayer->Possess(NewPawn);
     }
+    */
 }
 
 void AMainGameMode::ScoreGoal(int PlayerIndex)
